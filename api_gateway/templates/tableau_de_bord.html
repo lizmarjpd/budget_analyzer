@@ -1,0 +1,1561 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>Budget Analyzer</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: "Segoe UI", Arial, sans-serif;
+            background: #eef2f8;
+            color: #172b4d;
+        }
+
+        .menu {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 230px;
+            height: 100vh;
+            background: #14213d;
+            color: white;
+            padding: 30px 20px;
+        }
+
+        .menu h2 {
+            font-size: 21px;
+            margin-bottom: 40px;
+        }
+
+        .menu a {
+            display: block;
+            padding: 14px;
+            margin-bottom: 10px;
+            border-radius: 9px;
+            color: #c4cde0;
+            text-decoration: none;
+        }
+
+        .menu a:hover,
+        .menu a.actif {
+            background: #405cf5;
+            color: white;
+        }
+
+        main {
+            margin-left: 250px;
+            padding: 35px;
+            max-width: 1450px;
+        }
+
+        h1 {
+            margin-bottom: 5px;
+        }
+
+        .sous-titre {
+            color: #68758a;
+            margin-bottom: 25px;
+        }
+
+        .carte {
+            background: white;
+            padding: 25px;
+            border-radius: 15px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+        }
+
+        .statistiques {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+
+        .statistique h3 {
+            margin: 0;
+            font-size: 14px;
+            color: #68758a;
+        }
+
+        .valeur {
+            font-size: 27px;
+            font-weight: bold;
+            margin: 15px 0 0;
+            color: #405cf5;
+        }
+
+        .valeur.habituelle {
+            color: #2473bb;
+        }
+
+        .valeur.occasionnelle {
+            color: #dc8a24;
+        }
+
+        .valeur.credit {
+            color: #7b4acb;
+        }
+
+        .formulaire {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+
+        .champ {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .large {
+            grid-column: 1 / -1;
+        }
+
+        label {
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        input,
+        select,
+        textarea {
+            padding: 12px;
+            border: 1px solid #d5dce8;
+            border-radius: 8px;
+            font-size: 14px;
+            width: 100%;
+            font-family: inherit;
+        }
+
+        input:focus,
+        select:focus,
+        textarea:focus {
+            outline: none;
+            border-color: #405cf5;
+        }
+
+        button {
+            border: none;
+            padding: 11px 17px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+        }
+
+        .principal {
+            background: #405cf5;
+            color: white;
+        }
+
+        .secondaire {
+            background: #e8ecf5;
+            color: #25324a;
+        }
+
+        .modifier {
+            background: #f0ad4e;
+            color: white;
+        }
+
+        .supprimer {
+            background: #dc3545;
+            color: white;
+        }
+
+        .actions-formulaire {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        .filtre {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            flex-wrap: wrap;
+        }
+
+        .filtre input {
+            width: auto;
+        }
+
+        .tableau {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            min-width: 900px;
+        }
+
+        th {
+            background: #f4f6fb;
+            padding: 14px;
+            text-align: left;
+            font-size: 13px;
+        }
+
+        td {
+            padding: 14px;
+            border-bottom: 1px solid #eee;
+            font-size: 13px;
+        }
+
+        .etiquette {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .etiquette.habituelle {
+            background: #e1efff;
+            color: #2473bb;
+        }
+
+        .etiquette.occasionnelle {
+            background: #fff0da;
+            color: #a86b1c;
+        }
+
+        .etiquette.inconnue {
+            background: #eceef2;
+            color: #68758a;
+        }
+
+        .message {
+            margin-top: 15px;
+            font-weight: 600;
+            color: #405cf5;
+        }
+
+        .aide {
+            font-size: 12px;
+            color: #68758a;
+        }
+
+        .ligne-categorie {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .ligne-categorie input {
+            max-width: 350px;
+        }
+
+        @media (max-width: 1100px) {
+            .statistiques {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+
+        @media (max-width: 700px) {
+            .menu {
+                position: static;
+                width: 100%;
+                height: auto;
+            }
+
+            main {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .statistiques,
+            .formulaire {
+                grid-template-columns: 1fr;
+            }
+
+            .large {
+                grid-column: auto;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<nav class="menu">
+    <h2>◈ Budget Analyzer</h2>
+
+    <a href="/" class="actif">▦ Tableau de bord</a>
+    <a href="#depenses">◉ Dépenses</a>
+    <a href="#categories">◈ Catégories</a>
+    <a href="#statistiques">▥ Statistiques</a>
+</nav>
+
+<main>
+
+    <h1>Tableau de bord</h1>
+
+    <p class="sous-titre">
+        Gérez vos dépenses et suivez votre budget facilement.
+    </p>
+
+    <!-- FILTRE MENSUEL -->
+
+    <section class="carte">
+
+        <div class="filtre">
+
+            <label for="filtre_mois">
+                Filtrer par mois :
+            </label>
+
+            <input type="month" id="filtre_mois">
+
+            <button type="button"
+                    class="secondaire"
+                    id="effacer_filtre">
+                Tous les mois
+            </button>
+
+        </div>
+
+    </section>
+
+
+    <!-- STATISTIQUES -->
+
+    <section class="statistiques" id="statistiques">
+
+        <div class="carte statistique">
+            <h3>Total des dépenses</h3>
+            <p class="valeur" id="total_depenses">0,00 $</p>
+        </div>
+
+        <div class="carte statistique">
+            <h3>Dépenses habituelles</h3>
+            <p class="valeur habituelle"
+               id="total_habituelles">0,00 $</p>
+        </div>
+
+        <div class="carte statistique">
+            <h3>Dépenses occasionnelles</h3>
+            <p class="valeur occasionnelle"
+               id="total_occasionnelles">0,00 $</p>
+        </div>
+
+        <div class="carte statistique">
+    <h3>Nombre de transactions</h3>
+    <p class="valeur" id="total_transactions">0</p>
+</div>
+
+    </section>
+
+<!-- STATISTIQUES PAR MODE DE PAIEMENT -->
+
+<section class="carte" id="statistiques_paiement">
+
+    <h2>Dépenses par mode de paiement</h2>
+
+    <p class="sous-titre">
+        Répartition des dépenses selon le mode de paiement utilisé.
+    </p>
+
+    <div class="statistiques">
+
+        <div class="carte statistique">
+            <h3>Carte de crédit</h3>
+            <p class="valeur" id="total_credit">0,00 $</p>
+        </div>
+
+        <div class="carte statistique">
+            <h3>Carte de débit</h3>
+            <p class="valeur" id="total_debit">0,00 $</p>
+        </div>
+
+        <div class="carte statistique">
+            <h3>Espèces</h3>
+            <p class="valeur" id="total_especes">0,00 $</p>
+        </div>
+
+        <div class="carte statistique">
+            <h3>Virement bancaire</h3>
+            <p class="valeur" id="total_virement">0,00 $</p>
+        </div>
+
+        <div class="carte statistique">
+            <h3>Non précisé</h3>
+            <p class="valeur" id="total_non_precise">0,00 $</p>
+        </div>
+
+    </div>
+
+</section>
+
+    <!-- FORMULAIRE -->
+
+    <section class="carte" id="ajouter-depense">
+
+        <h2 id="titre_formulaire">
+            Ajouter une dépense
+        </h2>
+
+        <form id="formulaire_depense">
+
+            <input type="hidden" id="id_modification">
+
+            <div class="formulaire">
+
+                <div class="champ">
+
+                    <label for="categorie_id">
+                        Catégorie *
+                    </label>
+
+                    <select id="categorie_id" required>
+                        <option value="">
+                            Choisir une catégorie
+                        </option>
+                    </select>
+
+                </div>
+
+
+                <div class="champ">
+
+                    <label for="suggestion">
+                        Suggestion (facultative)
+                    </label>
+
+                    <select id="suggestion">
+                        <option value="">
+                            Choisir une suggestion
+                        </option>
+                    </select>
+
+                    <span class="aide">
+                        Vous pouvez aussi écrire votre propre description.
+                    </span>
+
+                </div>
+
+
+                <div class="champ">
+
+                    <label for="description">
+                        Description / Détail
+                    </label>
+
+                    <input
+                        type="text"
+                        id="description"
+                        placeholder="Ex. McDonald's">
+
+                </div>
+
+
+                <div class="champ">
+
+                    <label for="montant">
+                        Montant ($) *
+                    </label>
+
+                    <input
+                        type="number"
+                        id="montant"
+                        min="0.01"
+                        step="0.01"
+                        required>
+
+                </div>
+
+
+                <div class="champ">
+
+                    <label for="date">
+                        Date *
+                    </label>
+
+                    <input
+                        type="date"
+                        id="date"
+                        required>
+
+                </div>
+
+
+                <div class="champ">
+
+                    <label for="nature">
+                        Nature de la dépense *
+                    </label>
+
+                    <select id="nature" required>
+
+                        <option value="habituelle">
+                            Habituelle
+                        </option>
+
+                        <option value="occasionnelle">
+                            Occasionnelle
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="champ">
+
+                    <label for="mode_paiement">
+                        Mode de paiement (facultatif)
+                    </label>
+
+                    <select id="mode_paiement">
+
+                        <option value="">
+                            Non précisé
+                        </option>
+
+                        <option value="Espèces">
+                            Espèces
+                        </option>
+
+                        <option value="Carte de débit">
+                            Carte de débit
+                        </option>
+
+                        <option value="Carte de crédit">
+                            Carte de crédit
+                        </option>
+
+                        <option value="Virement bancaire">
+                            Virement bancaire
+                        </option>
+
+                    </select>
+
+                </div>
+
+
+                <div class="champ large">
+
+                    <label for="note">
+                        Note (facultative)
+                    </label>
+
+                    <textarea
+                        id="note"
+                        rows="3"
+                        placeholder="Informations supplémentaires"></textarea>
+
+                </div>
+
+            </div>
+
+
+            <div class="actions-formulaire">
+
+                <button
+                    type="submit"
+                    class="principal"
+                    id="bouton_enregistrer">
+                    Enregistrer
+                </button>
+
+                <button
+                    type="button"
+                    class="secondaire"
+                    id="annuler_modification"
+                    style="display:none">
+                    Annuler
+                </button>
+
+            </div>
+
+        </form>
+
+        <p class="message" id="message_depense"></p>
+
+    </section>
+
+
+    <!-- LISTE DES DÉPENSES -->
+
+    <section class="carte" id="depenses">
+
+        <h2>Liste des dépenses</h2>
+
+        <p>
+            Transactions :
+            <strong id="nombre_transactions">0</strong>
+        </p>
+
+        <div class="tableau">
+
+            <table>
+
+                <thead>
+                <tr>
+                    <th>Description</th>
+                    <th>Catégorie</th>
+                    <th>Date</th>
+                    <th>Nature</th>
+                    <th>Paiement</th>
+                    <th>Montant</th>
+                    <th>Actions</th>
+                </tr>
+                </thead>
+
+                <tbody id="liste_depenses">
+
+                <tr>
+                    <td colspan="7">
+                        Chargement des dépenses...
+                    </td>
+                </tr>
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+    </section>
+
+
+    <!-- CATÉGORIES -->
+
+    <section class="carte" id="categories">
+
+        <h2>Catégories disponibles</h2>
+
+        <p>
+            Nombre de catégories :
+            <strong id="nombre_categories">0</strong>
+        </p>
+
+        <ul id="liste_categories"></ul>
+
+        <h3>Ajouter une catégorie</h3>
+
+        <div class="ligne-categorie">
+
+            <input
+                type="text"
+                id="nouvelle_categorie"
+                placeholder="Nom de la catégorie">
+
+            <button
+                type="button"
+                class="principal"
+                id="ajouter_categorie">
+                Ajouter
+            </button>
+
+        </div>
+
+        <p id="message_categorie" class="message"></p>
+
+    </section>
+
+</main>
+
+
+<script>
+
+    // ==================================================
+    // SUGGESTIONS DE DÉPENSES
+    // ==================================================
+
+    const suggestions = {
+
+        "logement": [
+            "Loyer",
+            "Électricité",
+            "Internet",
+            "Entretien"
+        ],
+
+        "alimentation": [
+    "Épicerie",
+    "Boulangerie",
+    "Boucherie et charcuterie",
+    "Fruits et légumes"
+],
+
+        "transport": [
+            "Essence",
+            "Stationnement",
+            "Uber / Taxi",
+            "Transport en commun"
+        ],
+
+        "assurances": [
+            "Assurance automobile",
+            "Assurance habitation",
+            "Assurance vie"
+        ],
+
+        "famille": [
+            "Garderie",
+            "Vêtements enfants",
+            "Activités familiales"
+        ],
+
+        "santé": [
+            "Pharmacie",
+            "Consultations",
+            "Soins dentaires"
+        ],
+
+        "loisirs": [
+            "Cinéma",
+            "Sorties",
+            "Voyages"
+        ],
+
+        "autres": [
+            "Téléphone",
+            "Abonnements",
+            "Achats personnels",
+            "Divers"
+        ]
+    };
+
+
+    // Catégories proposées pour une première utilisation.
+    const categories_initiales = [
+        "Logement",
+        "Alimentation",
+        "Transport",
+        "Assurances",
+        "Famille",
+        "Santé",
+        "Loisirs",
+        "Autres"
+    ];
+
+
+    let categories = [];
+    let depenses_actuelles = [];
+
+
+    // ==================================================
+    // OUTILS
+    // ==================================================
+
+    function format_montant(montant) {
+
+        return Number(montant || 0).toLocaleString(
+            "fr-CA",
+            {
+                minimumFractionDigits: 2,
+                maximumFractionDigits: 2
+            }
+        ) + " $";
+    }
+
+
+    function normaliser(texte) {
+
+        return String(texte || "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .toLowerCase()
+            .trim();
+    }
+
+
+    function nom_categorie(id) {
+
+        const categorie = categories.find(
+            c => Number(c.id) === Number(id)
+        );
+
+        return categorie ? categorie.nom : "Sans catégorie";
+    }
+
+
+    function url_depenses() {
+
+        const mois =
+            document.getElementById("filtre_mois").value;
+
+        return mois
+            ? "/depenses?mois=" + encodeURIComponent(mois)
+            : "/depenses";
+    }
+
+
+    // ==================================================
+    // CHARGER LES CATÉGORIES
+    // ==================================================
+
+    async function charger_categories() {
+
+        try {
+
+            const reponse = await fetch("/categories");
+
+            if (!reponse.ok) {
+                throw new Error("Erreur catégories");
+            }
+
+            categories = await reponse.json();
+
+            const select =
+                document.getElementById("categorie_id");
+
+            const liste =
+                document.getElementById("liste_categories");
+
+            const ancienneValeur = select.value;
+
+            select.innerHTML =
+                '<option value="">Choisir une catégorie</option>';
+
+            liste.innerHTML = "";
+
+            categories.forEach(function(categorie) {
+
+                const option = document.createElement("option");
+
+                option.value = categorie.id;
+                option.textContent = categorie.nom;
+
+                select.appendChild(option);
+
+                const element = document.createElement("li");
+
+                element.textContent = categorie.nom;
+
+                liste.appendChild(element);
+
+            });
+
+            select.value = ancienneValeur;
+
+            document.getElementById("nombre_categories")
+                .textContent = categories.length;
+
+            actualiser_suggestions();
+
+        } catch (erreur) {
+
+            console.error(erreur);
+
+            document.getElementById("message_categorie")
+                .textContent =
+                "Impossible de charger les catégories.";
+
+        }
+    }
+
+
+    // ==================================================
+    // AJOUTER UNE CATÉGORIE
+    // ==================================================
+
+    async function ajouter_categorie(nom) {
+
+        const nomNettoye = nom.trim();
+
+        if (!nomNettoye) {
+            return false;
+        }
+
+        const existe = categories.some(
+            c => normaliser(c.nom) === normaliser(nomNettoye)
+        );
+
+        if (existe) {
+
+            document.getElementById("message_categorie")
+                .textContent = "Cette catégorie existe déjà.";
+
+            return false;
+        }
+
+        try {
+
+            const reponse = await fetch("/categories", {
+
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json"
+                },
+
+                body: JSON.stringify({
+                    nom: nomNettoye,
+                    icone: "",
+                    couleur: ""
+                })
+
+            });
+
+            if (!reponse.ok) {
+                throw new Error("Erreur création catégorie");
+            }
+
+            await charger_categories();
+
+            document.getElementById("message_categorie")
+                .textContent =
+                "Catégorie ajoutée avec succès !";
+
+            return true;
+
+        } catch (erreur) {
+
+            console.error(erreur);
+
+            document.getElementById("message_categorie")
+                .textContent =
+                "Impossible d'ajouter la catégorie.";
+
+            return false;
+        }
+    }
+
+
+    // ==================================================
+    // AJOUTER LES CATÉGORIES INITIALES
+    // ==================================================
+
+    async function preparer_categories() {
+
+        await charger_categories();
+
+        for (const nom of categories_initiales) {
+
+            const existe = categories.some(
+                c => normaliser(c.nom) === normaliser(nom)
+            );
+
+            if (!existe) {
+
+                await ajouter_categorie(nom);
+
+            }
+        }
+
+        await charger_categories();
+    }
+
+
+    // ==================================================
+    // AFFICHER LES SUGGESTIONS
+    // ==================================================
+
+    function actualiser_suggestions() {
+
+    const categorieId =
+        document.getElementById("categorie_id").value;
+
+    const nom = normaliser(
+        nom_categorie(categorieId)
+    );
+
+    const select =
+        document.getElementById("suggestion");
+
+    // Vider les anciennes suggestions.
+    select.innerHTML = "";
+
+    // La sélection est facultative.
+    const optionVide = document.createElement("option");
+
+    optionVide.value = "";
+    optionVide.textContent = "Sélection facultative";
+
+    select.appendChild(optionVide);
+
+    // Ajouter les suggestions de la catégorie.
+    const liste = suggestions[nom] || [];
+
+    liste.forEach(function(suggestion) {
+
+        const option = document.createElement("option");
+
+        option.value = suggestion;
+        option.textContent = suggestion;
+
+        select.appendChild(option);
+
+    });
+
+    // Permettre une description personnalisée.
+    const optionAutre = document.createElement("option");
+
+    optionAutre.value = "";
+    optionAutre.textContent = "Autre (à préciser)";
+
+    select.appendChild(optionAutre);
+}
+
+
+    // ==================================================
+    // STATISTIQUES
+    // ==================================================
+
+   function afficher_statistiques(depenses) {
+
+    // Totaux généraux.
+    let total = 0;
+    let habituelles = 0;
+    let occasionnelles = 0;
+
+    // Totaux par mode de paiement.
+    let credit = 0;
+    let debit = 0;
+    let especes = 0;
+    let virement = 0;
+    let non_precise = 0;
+
+    // Calculer les statistiques.
+    depenses.forEach(function(depense) {
+
+        const montant = Number(depense.montant) || 0;
+
+        total += montant;
+
+        // Nature de la dépense.
+        if (depense.nature === "habituelle") {
+            habituelles += montant;
+        }
+
+        if (depense.nature === "occasionnelle") {
+            occasionnelles += montant;
+        }
+
+        // Mode de paiement.
+        switch (depense.mode_paiement) {
+
+            case "Carte de crédit":
+                credit += montant;
+                break;
+
+            case "Carte de débit":
+                debit += montant;
+                break;
+
+            case "Espèces":
+                especes += montant;
+                break;
+
+            case "Virement bancaire":
+                virement += montant;
+                break;
+
+            default:
+                non_precise += montant;
+                break;
+        }
+
+    });
+
+    // Afficher les statistiques générales.
+    document.getElementById("total_depenses")
+        .textContent = format_montant(total);
+
+    document.getElementById("total_habituelles")
+        .textContent = format_montant(habituelles);
+
+    document.getElementById("total_occasionnelles")
+        .textContent = format_montant(occasionnelles);
+
+    document.getElementById("total_transactions")
+        .textContent = depenses.length;
+
+    // Afficher les statistiques par mode de paiement.
+    document.getElementById("total_credit")
+        .textContent = format_montant(credit);
+
+    document.getElementById("total_debit")
+        .textContent = format_montant(debit);
+
+    document.getElementById("total_especes")
+        .textContent = format_montant(especes);
+
+    document.getElementById("total_virement")
+        .textContent = format_montant(virement);
+
+    document.getElementById("total_non_precise")
+        .textContent = format_montant(non_precise);
+
+    // Nombre de transactions dans la liste.
+    document.getElementById("nombre_transactions")
+        .textContent = depenses.length;
+}
+
+    // ==================================================
+    // CHARGER LES DÉPENSES
+    // ==================================================
+
+    async function charger_depenses() {
+
+        try {
+
+            const reponse = await fetch(url_depenses());
+
+            if (!reponse.ok) {
+                throw new Error("Erreur dépenses");
+            }
+
+            const depenses = await reponse.json();
+
+            depenses_actuelles = depenses;
+
+            afficher_statistiques(depenses);
+
+            afficher_liste_depenses(depenses);
+
+        } catch (erreur) {
+
+            console.error(erreur);
+
+            document.getElementById("liste_depenses")
+                .innerHTML =
+                '<tr><td colspan="7">Erreur de chargement.</td></tr>';
+
+        }
+    }
+
+
+    // ==================================================
+    // AFFICHER LA LISTE
+    // ==================================================
+
+    function afficher_liste_depenses(depenses) {
+
+        const tableau =
+            document.getElementById("liste_depenses");
+
+        tableau.innerHTML = "";
+
+        if (depenses.length === 0) {
+
+            tableau.innerHTML =
+                '<tr><td colspan="7">Aucune dépense enregistrée.</td></tr>';
+
+            return;
+        }
+
+        depenses.forEach(function(depense) {
+
+            const ligne = document.createElement("tr");
+
+            const description = document.createElement("td");
+            const categorie = document.createElement("td");
+            const date = document.createElement("td");
+            const nature = document.createElement("td");
+            const paiement = document.createElement("td");
+            const montant = document.createElement("td");
+            const actions = document.createElement("td");
+
+            description.textContent =
+                depense.description || "Sans description";
+
+            categorie.textContent =
+                nom_categorie(depense.categorie_id);
+
+            date.textContent = depense.date;
+
+            const etiquette = document.createElement("span");
+
+            if (depense.nature === "habituelle") {
+
+                etiquette.textContent = "Habituelle";
+                etiquette.className = "etiquette habituelle";
+
+            } else if (depense.nature === "occasionnelle") {
+
+                etiquette.textContent = "Occasionnelle";
+                etiquette.className = "etiquette occasionnelle";
+
+            } else {
+
+                etiquette.textContent = "Non précisée";
+                etiquette.className = "etiquette inconnue";
+
+            }
+
+            nature.appendChild(etiquette);
+
+            paiement.textContent =
+                depense.mode_paiement || "Non précisé";
+
+            montant.textContent =
+                format_montant(depense.montant);
+
+
+            // Bouton Modifier.
+            const boutonModifier = document.createElement("button");
+
+            boutonModifier.textContent = "Modifier";
+            boutonModifier.className = "modifier";
+
+            boutonModifier.onclick = function() {
+                modifier_depense(depense);
+            };
+
+
+            // Bouton Supprimer.
+            const boutonSupprimer = document.createElement("button");
+
+            boutonSupprimer.textContent = "Supprimer";
+            boutonSupprimer.className = "supprimer";
+
+            boutonSupprimer.onclick = function() {
+                supprimer_depense(depense.id);
+            };
+
+
+            actions.appendChild(boutonModifier);
+            actions.appendChild(document.createTextNode(" "));
+            actions.appendChild(boutonSupprimer);
+
+            ligne.appendChild(description);
+            ligne.appendChild(categorie);
+            ligne.appendChild(date);
+            ligne.appendChild(nature);
+            ligne.appendChild(paiement);
+            ligne.appendChild(montant);
+            ligne.appendChild(actions);
+
+            tableau.appendChild(ligne);
+
+        });
+    }
+
+
+    // ==================================================
+    // ENREGISTRER OU MODIFIER
+    // ==================================================
+
+    document.getElementById("formulaire_depense")
+        .addEventListener("submit", async function(event) {
+
+            event.preventDefault();
+
+            const id =
+                document.getElementById("id_modification").value;
+
+            const categorieId =
+                document.getElementById("categorie_id").value;
+
+            const suggestion =
+                document.getElementById("suggestion").value;
+
+            const detail =
+                document.getElementById("description").value.trim();
+
+            const montant =
+                Number(document.getElementById("montant").value);
+
+            const date =
+                document.getElementById("date").value;
+
+            const nature =
+                document.getElementById("nature").value;
+
+            const modePaiement =
+                document.getElementById("mode_paiement").value;
+
+            const note =
+                document.getElementById("note").value.trim();
+
+
+            if (!categorieId) {
+
+                alert("Veuillez choisir une catégorie.");
+                return;
+            }
+
+            if (!suggestion && !detail) {
+
+                alert(
+                    "Choisissez une suggestion ou indiquez une description."
+                );
+
+                return;
+            }
+
+            if (!Number.isFinite(montant) || montant <= 0) {
+
+                alert("Veuillez saisir un montant valide.");
+                return;
+            }
+
+            if (!date) {
+
+                alert("Veuillez choisir une date.");
+                return;
+            }
+
+
+            // Construire la description du paiement.
+            let descriptionFinale = detail;
+
+            if (suggestion) {
+
+                descriptionFinale = detail
+                    ? suggestion + " - " + detail
+                    : suggestion;
+
+            }
+
+
+            const donnees = {
+
+                categorie_id: Number(categorieId),
+
+                description: descriptionFinale,
+
+                montant: montant,
+
+                date: date,
+
+                nature: nature,
+
+                mode_paiement: modePaiement || null,
+
+                note: note,
+
+                type_depense_id: null
+
+            };
+
+
+            if (id) {
+
+                const confirmation = confirm(
+                    "Confirmer la modification de cette dépense ?"
+                );
+
+                if (!confirmation) {
+                    return;
+                }
+
+            }
+
+
+            try {
+
+                const reponse = await fetch(
+                    id ? "/depenses/" + id : "/depenses",
+                    {
+                        method: id ? "PUT" : "POST",
+
+                        headers: {
+                            "Content-Type": "application/json"
+                        },
+
+                        body: JSON.stringify(donnees)
+                    }
+                );
+
+                if (!reponse.ok) {
+                    throw new Error("Erreur enregistrement");
+                }
+
+                annuler_modification();
+
+                document.getElementById("message_depense")
+                    .textContent = id
+                    ? "Dépense modifiée avec succès !"
+                    : "Dépense ajoutée avec succès !";
+
+                await charger_depenses();
+
+            } catch (erreur) {
+
+                console.error(erreur);
+
+                document.getElementById("message_depense")
+                    .textContent =
+                    "Erreur lors de l'enregistrement.";
+
+            }
+
+        });
+
+
+    // ==================================================
+    // MODIFIER UNE DÉPENSE
+    // ==================================================
+
+    function modifier_depense(depense) {
+
+        document.getElementById("id_modification")
+            .value = depense.id;
+
+        document.getElementById("categorie_id")
+            .value = depense.categorie_id ?? "";
+
+        actualiser_suggestions();
+
+        // Conserver la description existante sans la répéter.
+        document.getElementById("suggestion").value = "";
+
+        document.getElementById("description")
+            .value = depense.description || "";
+
+        document.getElementById("montant")
+            .value = depense.montant;
+
+        document.getElementById("date")
+            .value = depense.date;
+
+        document.getElementById("nature")
+            .value = depense.nature || "occasionnelle";
+
+        document.getElementById("mode_paiement")
+            .value = depense.mode_paiement || "";
+
+        document.getElementById("note")
+            .value = depense.note || "";
+
+        document.getElementById("titre_formulaire")
+            .textContent = "Modifier une dépense";
+
+        document.getElementById("bouton_enregistrer")
+            .textContent = "Enregistrer la modification";
+
+        document.getElementById("annuler_modification")
+            .style.display = "inline-block";
+
+        document.getElementById("ajouter-depense")
+            .scrollIntoView({
+                behavior: "smooth"
+            });
+    }
+
+
+    // ==================================================
+    // ANNULER LA MODIFICATION
+    // ==================================================
+
+    function annuler_modification() {
+
+        document.getElementById("formulaire_depense").reset();
+
+        document.getElementById("id_modification").value = "";
+
+        document.getElementById("titre_formulaire")
+            .textContent = "Ajouter une dépense";
+
+        document.getElementById("bouton_enregistrer")
+            .textContent = "Enregistrer";
+
+        document.getElementById("annuler_modification")
+            .style.display = "none";
+
+        actualiser_suggestions();
+    }
+
+
+    // ==================================================
+    // SUPPRIMER UNE DÉPENSE
+    // ==================================================
+
+    async function supprimer_depense(id) {
+
+        if (!confirm(
+            "Voulez-vous vraiment supprimer cette dépense ?"
+        )) {
+            return;
+        }
+
+        try {
+
+            const reponse = await fetch(
+                "/depenses/" + id,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            if (!reponse.ok) {
+                throw new Error("Erreur suppression");
+            }
+
+            alert("Dépense supprimée avec succès !");
+
+            await charger_depenses();
+
+        } catch (erreur) {
+
+            console.error(erreur);
+
+            alert("Impossible de supprimer la dépense.");
+
+        }
+    }
+
+
+    // ==================================================
+    // ÉVÉNEMENTS
+    // ==================================================
+
+    document.getElementById("categorie_id")
+        .addEventListener("change", actualiser_suggestions);
+
+
+    document.getElementById("filtre_mois")
+        .addEventListener("change", charger_depenses);
+
+
+    document.getElementById("effacer_filtre")
+        .addEventListener("click", function() {
+
+            document.getElementById("filtre_mois").value = "";
+
+            charger_depenses();
+
+        });
+
+
+    document.getElementById("annuler_modification")
+        .addEventListener("click", annuler_modification);
+
+
+    document.getElementById("ajouter_categorie")
+        .addEventListener("click", async function() {
+
+            const champ =
+                document.getElementById("nouvelle_categorie");
+
+            const ajoutee = await ajouter_categorie(champ.value);
+
+            if (ajoutee) {
+                champ.value = "";
+            }
+
+        });
+
+
+    // ==================================================
+    // DÉMARRAGE
+    // ==================================================
+
+    async function demarrer() {
+
+        await preparer_categories();
+
+        await charger_depenses();
+
+    }
+
+    demarrer();
+
+</script>
+
+</body>
+</html>
